@@ -45,9 +45,14 @@ TEST_F(KNeighborsClassifierTest, defaultCreationTest) {
     auto target = iris.target();
 
     auto kn = sklearn::neighbors::KNeighborsClassifier<np::float_, np::short_>{};
-    kn.fit(data["2:"], target["2:"]);
-    auto t_slice = target[":2"];
-    auto pred = kn.predict(data[":2"]);
+    kn.fit(data["1:"], target["1:"]);
+    auto t_slice = target[0];
+    np::Shape sh_t_slice{1, t_slice.shape()[0]};
+    t_slice.reshape(sh_t_slice);
+    auto d_slice = data[0];
+    np::Shape sh_d_slice{1, d_slice.shape()[0]};
+    d_slice.reshape(sh_d_slice);
+    auto pred = kn.predict(d_slice);
     EXPECT_TRUE(np::array_equal(t_slice, pred));
 }
 
