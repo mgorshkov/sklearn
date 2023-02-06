@@ -42,87 +42,159 @@ namespace sklearn {
         using namespace scipy::stats;
 
         /// Classifier implementing the k-nearest neighbors vote.
+        struct KNeighborsClassifierParameters {
+            np::Size n_neighbors{5};
+            WeightsType weights{WeightsType::kUniform};
+            AlgorithmType algorithm{AlgorithmType::kAuto};
+            int leaf_size{30};
+            int p{2};
+            metrics::DistanceMetricType metric{metrics::DistanceMetricType::kMinkowski};
+        };
+
+        template<typename DataType, typename TargetType = DataType>
+        class KNeighborsClassifier;
+
         template<typename DataType, typename TargetType>
         class KNeighborsClassifier {
         public:
-            KNeighborsClassifier(np::Size n_neighbors = 5,
-                                 WeightsType weights = WeightsType::kUniform,
-                                 AlgorithmType algorithm = AlgorithmType::kAuto,
-                                 int leaf_size = 30,
-                                 int p = 2,
-                                 metrics::DistanceMetricType metricType = metrics::DistanceMetricType::kMinkowski)
-                : m_neighbors{n_neighbors}, m_p{p}, m_metricType{metricType} {
-                if (algorithm != AlgorithmType::kAuto && algorithm != AlgorithmType::kBruteForce) {
+            explicit KNeighborsClassifier(KNeighborsClassifierParameters parameters = {})
+                : m_parameters{parameters} {
+                if (m_parameters.algorithm != AlgorithmType::kAuto && m_parameters.algorithm != AlgorithmType::kBruteForce) {
                     throw std::runtime_error("Only BruteForce algorithm is currently implemented");
                 }
-                if (weights != WeightsType::kUniform) {
+                if (m_parameters.weights != WeightsType::kUniform) {
                     throw std::runtime_error("Only Uniform weights are currently implemented");
                 }
-                (void) leaf_size;
             }
 
+            KNeighborsClassifier(const KNeighborsClassifier &) = default;
+            KNeighborsClassifier(KNeighborsClassifier &&) noexcept = default;
+
+            KNeighborsClassifier &operator=(const KNeighborsClassifier &) = default;
+            KNeighborsClassifier &operator=(KNeighborsClassifier &&) noexcept = default;
+
             // Fit the k-nearest neighbors classifier from the training dataset.
+            // X - training data
+            // y - target values
+            template<typename ArrayDataType, typename ArrayTargetType>
+            void fit(const ArrayDataType &X, const ArrayTargetType &y) {
+                m_X = X.copy();
+                m_y = y.copy();
+                m_fitted = true;
+            }
+
             // Predict the class labels for the provided data.
-            // X_fit - training data
-            // y_fit - target values
-            // X_predict - test samples.
-            template<typename DerivedX_fit, typename StorageX_fit, typename DerivedY_fit, typename StorageY_fit, typename DerivedX_predict, typename StorageX_predict>
-            Array<TargetType> fit_predict(const np::ndarray::internal::NDArrayBase<DataType, DerivedX_fit, StorageX_fit> &X_fit,
-                                          const np::ndarray::internal::NDArrayBase<TargetType, DerivedY_fit, StorageY_fit> &y_fit,
-                                          const np::ndarray::internal::NDArrayBase<DataType, DerivedX_predict, StorageX_predict> &X_predict) {
-                auto metric = metrics::DistanceMetric<np::ndarray::internal::NDArrayBase<DataType, DerivedX_predict, StorageX_predict>,
-                                                      np::ndarray::internal::NDArrayBase<DataType, DerivedX_fit, StorageX_fit>>::get_metric(m_metricType, m_p);
-                auto distances = metric->pairwise(X_predict, X_fit);
+            // X - test samples.
+            template<typename ArrayPredictType>
+            Array<TargetType> predict(const ArrayPredictType &X) {
+                if (!m_fitted) {
+                    throw std::runtime_error("This KNeighborsClassifier instance is not fitted yet. Call 'fit' with appropriate arguments before using this estimator.");
+                }
+                auto metric = metrics::DistanceMetric<ArrayPredictType, Array<DataType>>::get_metric(m_parameters.metric, m_parameters.p);
+                auto distances = metric->pairwise(X, m_X);
+                np::Size totalSamples = X.shape()[0];
+                Array<TargetType> pred{np::Shape{totalSamples}};
 
-                auto X_predict_shape{X_predict.shape()};
-                np::Size totalSamples = X_predict_shape[0];
-                np::Shape targetShape{totalSamples};
-                Array<TargetType> pred{targetShape};
-
-                for (np::Size sampleNumber = 0; sampleNumber < totalSamples; ++sampleNumber) {
-                    pred.set(sampleNumber, predictSample(X_fit, y_fit, distances[sampleNumber]));
+                for (np::Size sample = 0; sample < totalSamples; ++sample) {
+                    pred.set(sample, predictSample(distances[sample]));
                 }
                 return pred;
             }
 
         private:
-            template<typename DerivedX_fit, typename StorageX_fit, typename DerivedY_fit, typename StorageY_fit, typename StorageD>
-            TargetType predictSample(const np::ndarray::internal::NDArrayBase<DataType, DerivedX_fit, StorageX_fit> &X_fit,
-                                     const np::ndarray::internal::NDArrayBase<TargetType, DerivedY_fit, StorageY_fit> &y_fit,
-                                     const np::ndarray::internal::NDArrayBase<DataType, DerivedX_fit, StorageD> &distance) const {
-                std::vector<std::pair<DataType, TargetType>> distances;// distance
-                // Calculating distances
-                for (np::Size j = 0; j < X_fit.shape()[0]; ++j) {
-                    auto p = std::make_pair(distance.get(j), y_fit.get(j));
-                    distances.push_back(p);
+            template<typename DerivedX_fit, typename StorageD>
+            TargetType predictSample(const np::ndarray::internal::NDArrayBase<DataType, DerivedX_fit, StorageD> &distance) const {
+                std::priority_queue<std::pair<DataType, TargetType>, std::vector<std::pair<DataType, TargetType>>, std::greater<std::pair<DataType, TargetType>>> distances;
+                for (np::Size j = 0; j < m_X.shape()[0]; ++j) {
+                    auto p = std::make_pair(distance.get(j), m_y.get(j));
+                    distances.push(p);
                 }
-
-                // initialize original index locations
-                std::vector<std::size_t> idx(distances.size());
-                iota(idx.begin(), idx.end(), 0);
-
-                // sort indexes based on comparing values in v
-                // using std::stable_sort instead of std::sort
-                // to avoid unnecessary index re-orderings
-                // when v contains elements of equal values
-                std::stable_sort(idx.begin(), idx.end(), [&distances](size_t i1, size_t i2) {
-                    return distances[i1].first < distances[i2].first;
-                });
-                // Getting k nearest neighbors
                 std::vector<TargetType> v;
-                for (np::Size item = 0; item < m_neighbors; ++item) {
-                    v.push_back(y_fit.get(idx[item]));// appending K nearest neighbors
+                for (np::Size i = 0; i < m_parameters.n_neighbors; ++i) {
+                    v.push_back(distances.top().second);
+                    distances.pop();
                 }
-                // Making predictions
-                np::Shape shape{m_neighbors};
-                Array<TargetType> neighbors{v, shape};
-                auto pred = mode<TargetType>(neighbors).first;
-                return pred.get(0);
+                np::Shape shape{m_parameters.n_neighbors};
+                Array<TargetType> neighbors{std::move(v), shape};
+                return mode<TargetType>(neighbors).first.get(0);
             }
 
-            np::Size m_neighbors;
-            int m_p;
-            metrics::DistanceMetricType m_metricType;
+            KNeighborsClassifierParameters m_parameters;
+            Array<DataType> m_X;
+            Array<TargetType> m_y;
+            bool m_fitted{false};
         };
+
+        template<>
+        class KNeighborsClassifier<pd::DataFrame> {
+        public:
+            explicit KNeighborsClassifier(KNeighborsClassifierParameters parameters = {})
+                : m_parameters{parameters} {
+                if (m_parameters.algorithm != AlgorithmType::kAuto && m_parameters.algorithm != AlgorithmType::kBruteForce) {
+                    throw std::runtime_error("Only BruteForce algorithm is currently implemented");
+                }
+                if (m_parameters.weights != WeightsType::kUniform) {
+                    throw std::runtime_error("Only Uniform weights are currently implemented");
+                }
+            }
+
+            KNeighborsClassifier(const KNeighborsClassifier &) = default;
+            KNeighborsClassifier(KNeighborsClassifier &&) = default;
+
+            KNeighborsClassifier &operator=(const KNeighborsClassifier &) = default;
+            KNeighborsClassifier &operator=(KNeighborsClassifier &&) noexcept = default;
+
+            // Fit the k-nearest neighbors classifier from the training dataset.
+            // X - training data
+            // y - target values
+            void fit(const pd::DataFrame &X, const pd::DataFrame &y) {
+                m_X = X;
+                m_y = y;
+                m_fitted = true;
+            }
+
+            // Predict the class labels for the provided data.
+            // X - test samples.
+            pd::DataFrame predict(const pd::DataFrame &X) {
+                if (!m_fitted) {
+                    throw std::runtime_error("This KNeighborsClassifier instance is not fitted yet. Call 'fit' with appropriate arguments before using this estimator.");
+                }
+                auto metric = metrics::DistanceMetric<pd::DataFrame, pd::DataFrame>::get_metric(m_parameters.metric, m_parameters.p);
+                auto distances = metric->pairwise(X, m_X);
+
+                np::Size totalSamples = X.shape()[0];
+                np::Array<pd::internal::Value> array{np::Shape{totalSamples}};
+                for (np::Size sample = 0; sample < totalSamples; ++sample) {
+                    array.set(sample, predictSample(distances[sample]));
+                }
+                return pd::DataFrame{array};
+            }
+
+        private:
+            template<typename DerivedX_fit, typename StorageD>
+            [[nodiscard]] pd::internal::Value predictSample(const np::ndarray::internal::NDArrayBase<np::float_, DerivedX_fit, StorageD> &distance) const {
+                std::priority_queue<std::pair<np::float_, pd::internal::Value>, std::vector<std::pair<np::float_, pd::internal::Value>>, std::greater<std::pair<np::float_, pd::internal::Value>>> distances;
+                for (np::Size j = 0; j < m_X.shape()[0]; ++j) {
+                    auto p = std::make_pair(distance.get(j), m_y.at(j, 0));
+                    distances.push(p);
+                }
+
+                std::vector<pd::internal::Value> v;
+                for (np::Size i = 0; i < m_parameters.n_neighbors; ++i) {
+                    v.push_back(distances.top().second);
+                    distances.pop();
+                }
+
+                np::Shape shape{m_parameters.n_neighbors};
+                Array<pd::internal::Value> neighbors{v, shape};
+                return mode<pd::internal::Value>(neighbors).first.get(0);
+            }
+
+            KNeighborsClassifierParameters m_parameters;
+            pd::DataFrame m_X;
+            pd::DataFrame m_y;
+            bool m_fitted{false};
+        };
+
     }// namespace neighbors
 }// namespace sklearn

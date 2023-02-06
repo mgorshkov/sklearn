@@ -24,45 +24,104 @@ SOFTWARE.
 
 #include <np/Comp.hpp>
 
+#include <pd/core/frame/DataFrame/DataFrame.hpp>
+#include <pd/read_csv.hpp>
+
 #include <sklearn/datasets/datasets.hpp>
+#include <sklearn/metrics/accuracy_score.hpp>
+#include <sklearn/model_selection/train_test_split.hpp>
 #include <sklearn/neighbors/KNeighborsClassifier.hpp>
+#include <sklearn/preprocessing/StandardScaler.hpp>
 
 #include <SklearnTest.hpp>
-
-using namespace sklearn::neighbors;
 
 class KNeighborsClassifierTest : public SklearnTest {
 protected:
 };
 
-TEST_F(KNeighborsClassifierTest, firstSampleTest) {
+TEST_F(KNeighborsClassifierTest, irisArrayTest) {
+    using namespace sklearn::metrics;
     using namespace sklearn::datasets;
+    using namespace sklearn::model_selection;
     using namespace sklearn::neighbors;
+    using namespace sklearn::preprocessing;
 
     auto iris = load_iris();
     auto data = iris.data();
     auto target = iris.target();
 
-    auto d_slice = data[0];
-    np::Shape sh_d_slice{1, d_slice.shape()[0]};
-    auto d_slice_reshaped = d_slice.reshape(sh_d_slice);
-    auto kn = sklearn::neighbors::KNeighborsClassifier<np::float_, np::short_>{};
-    auto pred = kn.fit_predict(data["1:"], target["1:"], d_slice_reshaped);
-    compare(target[0], pred);
+    auto [X_train, X_test, y_train, y_test] =
+            train_test_split<np::float_, np::int_, 600, 150>({.X = data, .y = target, .test_size = 0.2, .random_state = 42});
+
+    auto sc_X = StandardScaler();
+    X_train = sc_X.fit_transform(X_train);
+    X_test = sc_X.transform(X_test);
+
+    auto kn = KNeighborsClassifier<np::float_, np::int_>{{.n_neighbors = 13,
+                                                          .p = 2,
+                                                          .metric = sklearn::metrics::DistanceMetricType::kEuclidean}};
+    kn.fit(X_train, y_train);
+    auto y_pred = kn.predict(X_test);
+
+    auto score = accuracy_score<np::int_>(y_test, y_pred);
+    EXPECT_GE(score, 0.7);
 }
 
-TEST_F(KNeighborsClassifierTest, lastSampleTest) {
+TEST_F(KNeighborsClassifierTest, irisDataFrameTest) {
+    using namespace sklearn::metrics;
     using namespace sklearn::datasets;
+    using namespace sklearn::model_selection;
     using namespace sklearn::neighbors;
+    using namespace sklearn::preprocessing;
 
     auto iris = load_iris();
-    auto data = iris.data();
-    auto target = iris.target();
+    auto data = pd::DataFrame{iris.data()};
+    auto target = pd::DataFrame{iris.target()};
 
-    auto d_slice = data[149];
-    np::Shape sh_d_slice{1, d_slice.shape()[0]};
-    auto d_slice_reshaped = d_slice.reshape(sh_d_slice);
-    auto kn = sklearn::neighbors::KNeighborsClassifier<np::float_, np::short_>{};
-    auto pred = kn.fit_predict(data[":149"], target[":149"], d_slice_reshaped);
-    compare(target[149], pred);
+    auto [X_train, X_test, y_train, y_test] =
+            train_test_split({.X = data, .y = target, .test_size = 0.2, .random_state = 42});
+
+    auto sc_X = StandardScaler();
+    X_train = sc_X.fit_transform(X_train);
+    X_test = sc_X.transform(X_test);
+
+    auto kn = KNeighborsClassifier<pd::DataFrame>{{.n_neighbors = 13,
+                                                   .p = 2,
+                                                   .metric = sklearn::metrics::DistanceMetricType::kEuclidean}};
+    kn.fit(X_train, y_train);
+    auto y_pred = kn.predict(X_test);
+
+    auto score = accuracy_score(y_test, y_pred);
+    EXPECT_GE(score, 0.7);
+}
+
+TEST_F(KNeighborsClassifierTest, diabetesTest) {
+    using namespace pd;
+    using namespace sklearn::metrics;
+    using namespace sklearn::model_selection;
+    using namespace sklearn::neighbors;
+    using namespace sklearn::preprocessing;
+
+    auto data = read_csv("https://raw.githubusercontent.com/adityakumar529/Coursera_Capstone/master/diabetes.csv");
+    const char *non_zero[] = {"Glucose", "BloodPressure", "SkinThickness", "Insulin", "BMI"};
+    for (const auto &column: non_zero) {
+        data[column] = data[column].replace(0L, np::NaN);
+        auto mean = data[column].mean(true);
+        data[column] = data[column].replace(np::NaN, mean);
+    }
+
+    auto X = data.iloc(":", "0:8");
+    auto y = data.iloc(":", "8");
+    auto [X_train, X_test, y_train, y_test] = train_test_split({.X = X, .y = y, .test_size = 0.2, .random_state = 42});
+
+    auto sc_X = StandardScaler{};
+    X_train = sc_X.fit_transform(X_train);
+    X_test = sc_X.transform(X_test);
+
+    auto kn = KNeighborsClassifier<DataFrame>{{.n_neighbors = 13, .p = 2, .metric = DistanceMetricType::kEuclidean}};
+    kn.fit(X_train, y_train);
+    auto y_pred = kn.predict(X_test);
+
+    auto score = accuracy_score(y_test, y_pred);
+    EXPECT_GE(score, 0.7);
 }

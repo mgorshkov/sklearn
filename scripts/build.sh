@@ -36,12 +36,16 @@ function create_package() {
         include
         include/sklearn/datasets
         include/sklearn/metrics
+        include/sklearn/model_selection
         include/sklearn/neighbors
         samples
         samples/neighbors
+        samples/neighbors/diabetes
+        samples/neighbors/iris
         scripts
         src
         src/datasets
+        src/model_selection
         unit_tests
         unit_tests/include
         unit_tests/src

@@ -27,6 +27,7 @@ SOFTWARE.
 #include <np/Array.hpp>
 
 #include <sklearn/metrics/Distance.hpp>
+#include <sklearn/metrics/Math.hpp>
 
 namespace sklearn {
     namespace metrics {
@@ -42,7 +43,7 @@ namespace sklearn {
                 np::Array<np::float_> result{shape};
                 for (np::Size i = 0; i < shape[0]; ++i) {
                     for (np::Size j = 0; j < shape[1]; ++j) {
-                        result.set(i * shape[0] + j, np::max(np::abs(X[i] - X[j])));
+                        result.set(i * shape[1] + j, max(abs(X[i] - X[j])));
                     }
                 }
                 return result;
@@ -59,7 +60,7 @@ namespace sklearn {
                 np::Array<np::float_> result{shape};
                 for (np::Size i = 0; i < shape[0]; ++i) {
                     for (np::Size j = 0; j < shape[1]; ++j) {
-                        result.set(i * shape[0] + j, np::max(np::abs(X[i] - Y[j])));
+                        result.set(i * shape[1] + j, max(abs(X[i] - Y[j])));
                     }
                 }
                 return result;
