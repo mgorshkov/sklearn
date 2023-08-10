@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.13.0)
 
 set(SKLEARN_UNIT_TESTS sklearn_unit_tests)
 
-project(${SKLEARN_UNIT_TESTS} VERSION 0.0.2 DESCRIPTION "Sklearn Unit Tests")
+project(${SKLEARN_UNIT_TESTS} VERSION 0.0.3 DESCRIPTION "Sklearn Unit Tests")
 
 include(FetchContent)
 

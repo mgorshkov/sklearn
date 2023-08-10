@@ -129,11 +129,11 @@ namespace sklearn {
             }
 
             np::Array<DType> transform(const np::Array<DType> &array) {
-                return (array - m_mean) / m_scale;
+                return array.subtract(m_mean).divide(m_scale);
             }
 
             pd::DataFrame transform(const pd::DataFrame &dataFrame) {
-                return dataFrame.subtractVector<np::float_>(m_mean).divideVector<np::float_>(m_scale);
+                return dataFrame.subtractVector<np::float_>(m_mean).template divideVector<np::float_>(m_scale);
             }
 
             np::Array<DType> fit_transform(const np::Array<DType> &array) {

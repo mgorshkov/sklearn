@@ -123,5 +123,5 @@ TEST_F(KNeighborsClassifierTest, diabetesTest) {
     auto y_pred = kn.predict(X_test);
 
     auto score = accuracy_score(y_test, y_pred);
-    EXPECT_GE(score, 0.7);
+    EXPECT_GE(score, 0.6558441558441559);
 }

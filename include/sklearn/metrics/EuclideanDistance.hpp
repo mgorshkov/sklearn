@@ -35,21 +35,21 @@ namespace sklearn {
         class EuclideanDistance : public Distance<ArrayX, ArrayY> {
         public:
             virtual np::Array<np::float_> pairwise(const ArrayX &X) {
-                if (X.shape().size() != 2) {
+                if (X.ndim() != 2) {
                     throw std::runtime_error("2D array expected");
                 }
                 np::Shape shape{X.shape()[0], X.shape()[0]};
                 np::Array<np::float_> result{shape};
                 for (np::Size i = 0; i < shape[0]; ++i) {
                     for (np::Size j = 0; j < shape[1]; ++j) {
-                        result.set(i * shape[1] + j, static_cast<np::float_>(sqrt(X[i].dot(X[i]) - 2 * X[i].dot(X[j]) + X[j].dot(X[j]))));
+                        result.set(i * shape[1] + j, std::sqrt(static_cast<np::float_>(X[i].dot(X[i])) - static_cast<np::float_>(X[i].dot(X[j])) * 2 + static_cast<np::float_>(X[j].dot(X[j]))));
                     }
                 }
                 return result;
             }
 
             virtual np::Array<np::float_> pairwise(const ArrayX &X, const ArrayY &Y) {
-                if (X.shape().size() != 2 || Y.shape().size() != 2) {
+                if (X.ndim() != 2 || Y.ndim() != 2) {
                     throw std::runtime_error("2D arrays expected");
                 }
                 if (X.shape()[1] != Y.shape()[1]) {
@@ -59,7 +59,7 @@ namespace sklearn {
                 np::Array<np::float_> result{shape};
                 for (np::Size i = 0; i < shape[0]; ++i) {
                     for (np::Size j = 0; j < shape[1]; ++j) {
-                        result.set(i * shape[1] + j, static_cast<np::float_>(sqrt(X[i].dot(X[i]) - 2 * X[i].dot(Y[j]) + Y[j].dot(Y[j]))));
+                        result.set(i * shape[1] + j, std::sqrt(static_cast<np::float_>(X[i].dot(X[i])) - 2 * static_cast<np::float_>(X[i].dot(Y[j])) + static_cast<np::float_>(Y[j].dot(Y[j]))));
                     }
                 }
                 return result;
