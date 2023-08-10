@@ -22,12 +22,35 @@ SOFTWARE.
 
 #pragma once
 
-#include <sklearn/datasets/Diabetes.hpp>
-#include <sklearn/datasets/Iris.hpp>
+#include <np/Array.hpp>
 
 namespace sklearn {
-    namespace datasets {
-        Iris load_iris();
-        Diabetes load_diabetes();
-    }// namespace datasets
+    namespace metrics {
+        template<typename ArrayX, typename ArrayY = ArrayX>
+        struct MeanAbsoluteErrorParameters {
+            ArrayX y_true;
+            ArrayY y_pred;
+        };
+
+        template<typename ArrayX, typename ArrayY>
+        np::float_ mean_absolute_error(const MeanAbsoluteErrorParameters<ArrayX, ArrayY> &params = {}) {
+            if (params.y_true.empty() && params.y_pred.empty()) {
+                return 1.0;
+            }
+            if (params.y_true.ndim() != params.y_pred.ndim()) {
+                throw std::runtime_error("Arrays must be of equal dimensions");
+            }
+            if (params.y_true.size() != params.y_pred.size()) {
+                throw std::runtime_error("Arrays must be of equal sizes");
+            }
+
+            np::float_ sum = 0.0;
+            for (std::size_t i = 0; i < params.y_pred.size(); ++i) {
+                sum += std::abs(params.y_true.get(i) - params.y_pred.get(i));
+            }
+            np::float_ mae = params.y_pred.size() == 0 ? 0 : (sum == 0 ? 0.0 : sum) / params.y_pred.size();
+            return mae;
+        }
+
+    }// namespace metrics
 }// namespace sklearn

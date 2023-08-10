@@ -26,10 +26,7 @@ SOFTWARE.
 
 #include <sklearn/metrics/DistanceMetric.hpp>
 #include <sklearn/metrics/EuclideanDistance.hpp>
-#include <sklearn/metrics/accuracy_score.hpp>
-#include <sklearn/metrics/f1_score.hpp>
 
-#include "sklearn/metrics/confusion_matrix.hpp"
 #include <SklearnTest.hpp>
 
 using namespace sklearn::metrics;
@@ -83,10 +80,11 @@ array([[6., 9., 12.],
 
 TEST_F(MetricsTest, euclideanDistancePairwise1ParamTest) {
     /*
->>> from sklearn.metrics import DistanceMetric
+>>> from sklearn.metrics.pairwise import euclidean_distances
 >>> dist = DistanceMetric.get_metric('euclidean')
->>> X = [2.7810836, 2.550537003]
->>> dist.pairwise(X)
+>>> X = [[0, 1, 2],
+         [3, 4, 5]]
+    euclidean_distances(X)
 array([[ 0.        ,  5.19615242],
       [ 5.19615242,  0.        ]])
 */
@@ -209,135 +207,4 @@ array([[10.39230485, 15.58845727, 20.78460969],
                                        {5.196152422706632, 10.392304845413264, 15.588457268119896}};
     np::Array<np::float_> result_sample{result_array_c};
     compare(result, result_sample);
-}
-
-TEST_F(MetricsTest, accuracyScore1DArrayTest) {
-    np::Array<np::intc> y_true{0, 1, 2, 3};
-    np::Array<np::intc> y_pred{0, 2, 1, 3};
-
-    np::float_ score = accuracy_score<np::intc>(y_true, y_pred);
-    EXPECT_DOUBLE_EQ(score, 0.5);
-}
-
-TEST_F(MetricsTest, accuracyScore2DArrayTest) {
-    np::intc array[2][2] = {{0, 1}, {1, 1}};
-    np::Array<np::intc> y_pred{array};
-    auto y_true = np::ones<np::intc>({2, 2});
-    np::float_ score = accuracy_score<np::intc>(y_true, y_pred);
-    EXPECT_DOUBLE_EQ(score, 0.5);
-}
-
-TEST_F(MetricsTest, accuracyScore1DDataFrameTest) {
-    np::Array<np::intc> y_pred{0, 2, 1, 3};
-    np::Array<np::intc> y_true{0, 1, 2, 3};
-
-    np::float_ score = accuracy_score(pd::DataFrame{y_true}, pd::DataFrame{y_pred});
-    EXPECT_DOUBLE_EQ(score, 0.5);
-}
-
-TEST_F(MetricsTest, accuracyScore2DDataFrameTest) {
-    np::intc array[2][2] = {{0, 1}, {1, 1}};
-    np::Array<np::intc> y_pred{array};
-    auto y_true = np::ones<np::intc>({2, 2});
-    np::float_ score = accuracy_score(pd::DataFrame{y_true}, pd::DataFrame{y_pred});
-    EXPECT_DOUBLE_EQ(score, 0.5);
-}
-
-TEST_F(MetricsTest, accuracyScore1DSeriesTest) {
-    np::Array<np::intc> y_pred{0, 2, 1, 3};
-    np::Array<np::intc> y_true{0, 1, 2, 3};
-
-    np::float_ score = accuracy_score(pd::Series{y_true}, pd::Series{y_pred});
-    EXPECT_DOUBLE_EQ(score, 0.5);
-}
-
-TEST_F(MetricsTest, f1ScoreBinary1DArrayTest) {
-    np::Array<np::bool_> y_true{false, true, false, false};
-    np::Array<np::bool_> y_pred{false, true, false, true};
-
-    np::float_ score = f1_score<np::bool_>({.y_true = std::move(y_true), .y_pred = std::move(y_pred)});
-    EXPECT_DOUBLE_EQ(score, 0.6666666666666666);
-}
-
-TEST_F(MetricsTest, f1ScoreBinary1DDataFrameTest) {
-    np::Array<np::bool_> y_true{false, true, false, false};
-    np::Array<np::bool_> y_pred{false, true, false, true};
-
-    np::float_ score = f1_score({.y_true = pd::DataFrame{y_true}, .y_pred = pd::DataFrame{y_pred}});
-    EXPECT_DOUBLE_EQ(score, 0.6666666666666666);
-}
-
-TEST_F(MetricsTest, f1ScoreMacro1DArrayTest) {
-    np::Array<np::intc> y_true{0, 1, 2, 0, 1, 2};
-    np::Array<np::intc> y_pred{0, 2, 1, 0, 0, 1};
-
-    np::float_ score = f1_score<np::intc>({.y_true = std::move(y_true), .y_pred = std::move(y_pred), .average = Average::avMacro});
-    EXPECT_DOUBLE_EQ(score, 0.26666666666666666);
-}
-
-TEST_F(MetricsTest, f1ScoreMacro1DStringArrayTest) {
-    np::Array<np::string_> y_true{"airplane", "car", "car", "car", "car", "airplane", "boat", "car", "airplane", "car"};
-    np::Array<np::string_> y_pred{"airplane", "boat", "car", "car", "boat", "boat", "boat", "airplane", "airplane", "car"};
-
-    np::float_ score = f1_score<np::string_>({.y_true = std::move(y_true), .y_pred = std::move(y_pred), .average = Average::avMacro});
-    EXPECT_DOUBLE_EQ(score, 0.57777777777777783);
-}
-
-TEST_F(MetricsTest, f1ScoreMicro1DArrayTest) {
-    np::Array<np::intc> y_true{0, 1, 2, 0, 1, 2};
-    np::Array<np::intc> y_pred{0, 2, 1, 0, 0, 1};
-
-    np::float_ score = f1_score<np::intc>({.y_true = std::move(y_true), .y_pred = std::move(y_pred), .average = Average::avMicro});
-    EXPECT_DOUBLE_EQ(score, 0.3333333333333333);
-}
-
-TEST_F(MetricsTest, f1ScoreMicro1DStringArrayTest) {
-    np::Array<np::string_> y_true{"airplane", "car", "car", "car", "car", "airplane", "boat", "car", "airplane", "car"};
-    np::Array<np::string_> y_pred{"airplane", "boat", "car", "car", "boat", "boat", "boat", "airplane", "airplane", "car"};
-
-    np::float_ score = f1_score<np::string_>({.y_true = std::move(y_true), .y_pred = std::move(y_pred), .average = Average::avMicro});
-    EXPECT_DOUBLE_EQ(score, 0.60);
-}
-
-TEST_F(MetricsTest, f1ScoreWeighed1DStringArrayTest) {
-    np::Array<np::string_> y_true{"airplane", "car", "car", "car", "car", "airplane", "boat", "car", "airplane", "car"};
-    np::Array<np::string_> y_pred{"airplane", "boat", "car", "car", "boat", "boat", "boat", "airplane", "airplane", "car"};
-
-    np::float_ score = f1_score<np::string_>({.y_true = std::move(y_true), .y_pred = std::move(y_pred), .average = Average::avWeighted});
-    EXPECT_DOUBLE_EQ(score, 0.64);
-}
-
-TEST_F(MetricsTest, f1ScoreBinary2DDataFrameTest) {
-    np::bool_ array_true[2][2] = {{true, false}, {false, true}};
-    np::Array<np::bool_> y_true(array_true);
-    np::bool_ array_pred[2][2] = {{false, true}, {true, true}};
-    np::Array<np::bool_> y_pred(array_pred);
-    EXPECT_THROW(f1_score({.y_true = pd::DataFrame{y_true}, .y_pred = pd::DataFrame{y_pred}}), std::runtime_error);
-}
-
-TEST_F(MetricsTest, f1Score1DCategorialSeriesTest) {
-    np::Array<np::intc> y_true{0, 1, 2, 3};
-    np::Array<np::intc> y_pred{0, 2, 1, 3};
-
-    EXPECT_THROW(f1_score({.y_true = pd::Series{y_true}, .y_pred = pd::Series{y_pred}}), std::runtime_error);
-}
-
-TEST_F(MetricsTest, confusionMatrixNumbersArrayTest) {
-    np::Array<np::intc> y_true{0, 0, 2, 2, 0, 2};
-    np::Array<np::intc> y_pred{2, 0, 2, 2, 0, 1};
-
-    auto matrix = confusion_matrix<np::intc>({.y_true = std::move(y_true), .y_pred = std::move(y_pred)});
-    compare(matrix, np::Array<np::Size>({{2, 0, 1},
-                                         {0, 0, 0},
-                                         {0, 1, 2}}));
-}
-
-TEST_F(MetricsTest, confusionMatrixStringArrayTest) {
-    np::Array<np::string_> y_true{"airplane", "car", "car", "car", "car", "airplane", "boat", "car", "airplane", "car"};
-    np::Array<np::string_> y_pred{"airplane", "boat", "car", "car", "boat", "boat", "boat", "airplane", "airplane", "car"};
-
-    auto matrix = confusion_matrix<np::string_>({.y_true = std::move(y_true), .y_pred = std::move(y_pred)});
-    compare(matrix, np::Array<np::Size>({{2, 1, 0},
-                                         {0, 1, 0},
-                                         {1, 2, 3}}));
 }

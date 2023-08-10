@@ -48,7 +48,7 @@ namespace sklearn {
                 np::Array<np::float_> result{shape};
                 for (np::Size i = 0; i < shape[0]; ++i) {
                     for (np::Size j = 0; j < shape[1]; ++j) {
-                        result.set(i * shape[1] + j, sqrt(X[i].dot(X[i]) - 2 * X[i].dot(X[j]) + X[j].dot(X[j])));
+                        result.set(i * shape[1] + j, std::sqrt(static_cast<np::float_>(X[i].dot(X[i])) - 2 * static_cast<np::float_>(X[i].dot(X[j])) + static_cast<np::float_>(X[j].dot(X[j]))));
                     }
                 }
                 return result;
@@ -65,7 +65,7 @@ namespace sklearn {
                 np::Array<np::float_> result{shape};
                 for (np::Size i = 0; i < shape[0]; ++i) {
                     for (np::Size j = 0; j < shape[1]; ++j) {
-                        result.set(i * shape[1] + j, sqrt(X[i].dot(X[i]) - 2 * X[i].dot(Y[j]) + Y[j].dot(Y[j])));
+                        result.set(i * shape[1] + j, std::sqrt(static_cast<np::float_>(X[i].dot(X[i])) - 2 * static_cast<np::float_>(X[i].dot(Y[j])) + static_cast<np::float_>(Y[j].dot(Y[j]))));
                     }
                 }
                 return result;

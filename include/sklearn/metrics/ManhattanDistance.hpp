@@ -42,7 +42,7 @@ namespace sklearn {
                 np::Array<np::float_> result{shape};
                 for (np::Size i = 0; i < shape[0]; ++i) {
                     for (np::Size j = 0; j < shape[1]; ++j) {
-                        result.set(i * shape[1] + j, sum(abs(X[i] - X[j])));
+                        result.set(i * shape[1] + j, sum(abs(X[i].subtract(X[j]))));
                     }
                 }
                 return result;
@@ -59,7 +59,7 @@ namespace sklearn {
                 np::Array<np::float_> result{shape};
                 for (np::Size i = 0; i < shape[0]; ++i) {
                     for (np::Size j = 0; j < shape[1]; ++j) {
-                        result.set(i * shape[1] + j, sum(abs(X[i] - Y[j])));
+                        result.set(i * shape[1] + j, sum(abs(X[i].subtract(Y[j]))));
                     }
                 }
                 return result;

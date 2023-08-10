@@ -9,8 +9,10 @@ in the Software without restriction, including without limitation the rights
 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
+
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
+
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -20,14 +22,32 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#pragma once
+#include <sklearn/metrics/mean_squared_error.hpp>
 
-#include <sklearn/datasets/Diabetes.hpp>
-#include <sklearn/datasets/Iris.hpp>
+#include <SklearnTest.hpp>
 
-namespace sklearn {
-    namespace datasets {
-        Iris load_iris();
-        Diabetes load_diabetes();
-    }// namespace datasets
-}// namespace sklearn
+using namespace sklearn::metrics;
+
+class MeanSquaredErrorTest : public SklearnTest {
+protected:
+};
+
+TEST_F(MeanSquaredErrorTest, test1) {
+    np::Array<np::float_> y_true{3, -0.5, 2, 7};
+    np::Array<np::float_> y_pred{2.5, 0.0, 2, 8};
+
+    MeanSquaredErrorParameters<np::Array<np::float_>> params{.y_true = std::move(y_true), .y_pred = std::move(y_pred)};
+    np::float_ error = mean_squared_error(params);
+    EXPECT_DOUBLE_EQ(error, 0.375);
+}
+
+TEST_F(MeanSquaredErrorTest, test2) {
+    np::float_ ar1[3][2] = {{0.5, 1.0}, {-1.0, 1.0}, {7.0, -6.0}};
+    np::float_ ar2[3][2] = {{0.0, 2.0}, {-1.0, 2.0}, {8.0, -5.0}};
+    np::Array<np::float_> y_true{ar1};
+    np::Array<np::float_> y_pred{ar2};
+
+    MeanSquaredErrorParameters<np::Array<np::float_>> params{.y_true = std::move(y_true), .y_pred = std::move(y_pred)};
+    np::float_ error = mean_squared_error(params);
+    EXPECT_DOUBLE_EQ(error, 0.7083333333333334);
+}

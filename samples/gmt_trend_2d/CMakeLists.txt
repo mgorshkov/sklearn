@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.13.0)
 
-set(NEIGHBORS_DIABETES neighbors_diabetes)
+set(GMT_TREND_2D gmt_trend_2d)
 
-project(${NEIGHBORS_DIABETES})
+project(${GMT_TREND_2D})
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -26,19 +26,19 @@ endif()
 
 include_directories(${sklearn_SOURCE_DIR}/include)
 
-add_executable(${NEIGHBORS_DIABETES})
+add_executable(${GMT_TREND_2D})
 
-target_sources(${NEIGHBORS_DIABETES} PUBLIC main.cpp)
+target_sources(${GMT_TREND_2D} PUBLIC main.cpp)
 
 target_link_libraries(
-    ${NEIGHBORS_DIABETES}
+    ${GMT_TREND_2D}
     pd
     ssl
     sklearn
     ${PTHREAD})
 
 install(
-    TARGETS ${NEIGHBORS_DIABETES}
+    TARGETS ${GMT_TREND_2D}
     DESTINATION ${CMAKE_INSTALL_BINDIR}
-    COMPONENT ${NEIGHBORS_DIABETES}
+    COMPONENT ${GMT_TREND_2D}
 )

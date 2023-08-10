@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.13.0)
 
 set(SKLEARN sklearn)
 
-project(${SKLEARN} VERSION 0.0.2 DESCRIPTION "ML Methods from scikit-learn library")
+project(${SKLEARN} VERSION 0.0.3 DESCRIPTION "ML Methods from scikit-learn library")
 
 set(CMAKE_CXX_STANDARD 20)
 

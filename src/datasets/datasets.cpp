@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#include <sklearn/datasets/Diabetes.hpp>
 #include <sklearn/datasets/Iris.hpp>
 
 namespace sklearn {
@@ -28,6 +29,12 @@ namespace sklearn {
             Iris iris;
             iris.load();
             return iris;
+        }
+
+        Diabetes load_diabetes() {
+            Diabetes diabetes;
+            diabetes.load();
+            return diabetes;
         }
     }// namespace datasets
 }// namespace sklearn
