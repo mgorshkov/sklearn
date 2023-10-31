@@ -1,7 +1,7 @@
 /*
-ML Methods from scikit-learn library
+⚡ ML methods in C++ | CUDA GPU + SIMD (AVX2/AVX512/AMX) CPU
 
-Copyright (c) 2023 Mikhail Gorshkov (mikhail.gorshkov@gmail.com)
+Copyright (c) 2023-2026 Mikhail Gorshkov (mikhail.gorshkov@gmail.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@ SOFTWARE.
 
 #include <np/Array.hpp>
 #include <scipy/stats/mode.hpp>
+#include <sklearn/Exception.hpp>
 #include <sklearn/metrics/Distance.hpp>
 #include <sklearn/metrics/DistanceMetric.hpp>
 #include <sklearn/metrics/DistanceMetricType.hpp>
@@ -60,10 +61,10 @@ namespace sklearn {
             explicit KNeighborsClassifier(KNeighborsClassifierParameters parameters = {})
                 : m_parameters{parameters} {
                 if (m_parameters.algorithm != AlgorithmType::kAuto && m_parameters.algorithm != AlgorithmType::kBruteForce) {
-                    throw std::runtime_error("Only BruteForce algorithm is currently implemented");
+                    throw sklearn::RuntimeError("Only BruteForce algorithm is currently implemented");
                 }
                 if (m_parameters.weights != WeightsType::kUniform) {
-                    throw std::runtime_error("Only Uniform weights are currently implemented");
+                    throw sklearn::RuntimeError("Only Uniform weights are currently implemented");
                 }
             }
 
@@ -88,7 +89,7 @@ namespace sklearn {
             template<typename ArrayPredictType>
             Array<TargetType> predict(const ArrayPredictType &X) {
                 if (!m_fitted) {
-                    throw std::runtime_error("This KNeighborsClassifier instance is not fitted yet. Call 'fit' with appropriate arguments before using this estimator.");
+                    throw sklearn::RuntimeError("This KNeighborsClassifier instance is not fitted yet. Call 'fit' with appropriate arguments before using this estimator.");
                 }
                 auto metric = metrics::DistanceMetric<ArrayPredictType, Array<DataType>>::get_metric(m_parameters.metric, m_parameters.p);
                 auto distances = metric->pairwise(X, m_X);
@@ -131,10 +132,10 @@ namespace sklearn {
             explicit KNeighborsClassifier(KNeighborsClassifierParameters parameters = {})
                 : m_parameters{parameters} {
                 if (m_parameters.algorithm != AlgorithmType::kAuto && m_parameters.algorithm != AlgorithmType::kBruteForce) {
-                    throw std::runtime_error("Only BruteForce algorithm is currently implemented");
+                    throw sklearn::RuntimeError("Only BruteForce algorithm is currently implemented");
                 }
                 if (m_parameters.weights != WeightsType::kUniform) {
-                    throw std::runtime_error("Only Uniform weights are currently implemented");
+                    throw sklearn::RuntimeError("Only Uniform weights are currently implemented");
                 }
             }
 
@@ -157,7 +158,7 @@ namespace sklearn {
             // X - test samples.
             pd::DataFrame predict(const pd::DataFrame &X) {
                 if (!m_fitted) {
-                    throw std::runtime_error("This KNeighborsClassifier instance is not fitted yet. Call 'fit' with appropriate arguments before using this estimator.");
+                    throw sklearn::RuntimeError("This KNeighborsClassifier instance is not fitted yet. Call 'fit' with appropriate arguments before using this estimator.");
                 }
                 auto metric = metrics::DistanceMetric<pd::DataFrame, pd::DataFrame>::get_metric(m_parameters.metric, m_parameters.p);
                 auto distances = metric->pairwise(X, m_X);

@@ -1,34 +1,28 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/2pl7od2nosslyqay/branch/main?svg=true)](https://ci.appveyor.com/project/mgorshkov/sklearn/branch/main)
 
+![np logo](doc/logo.svg)
+
 # About
-ML Methods from scikit-learn library.
+⚡ Sklearn ML methods in C++ | CUDA GPU + CUDA GPU + SIMD (AVX2/AVX512/AMX)
 
 # Description
-Implements some ML Methods from scikit-learn library.
+Implements some sklearn ML methods in C++ on CUDA GPU + CUDA GPU + SIMD (AVX2/AVX512/AMX).
 
 # Requirements
-Any C++20-compatible compiler:
-* gcc 10 or higher
-* clang 6 or higher
+C++20-compatible compiler:
+* gcc 13 or higher
+* clang 14 or higher
 * Visual Studio 2019 or higher
+* CUDA development environment (NVIDIA CUDA Toolkit, and compatible NVIDIA drivers installed) to use CUDA optimizations (nvcc 12 or higher)
 
 # Repo
 ```
 git clone https://github.com/mgorshkov/sklearn.git
 ```
 
-# Build unit tests and sample
-## Linux/MacOS
+# Build
 ```
-mkdir build && cd build
-cmake ..
-cmake --build .
-```
-## Windows
-```
-mkdir build && cd build
-cmake ..
-cmake --build . --config Release
+./scripts/build.sh
 ```
 
 # Build docs
@@ -92,19 +86,23 @@ int main(int, char **) {
 ```
 git clone https://github.com/mgorshkov/sklearn.git
 ```
-2. cd samples/neighbors/iris
+2. Build the library
+```
+./scripts/build.sh
+```
+3. cd samples/neighbors/iris
 ```
 cd samples/neighbors/iris
 ```
-3. Make build dir
+4. Make build dir
 ```
-mkdir -p build-release && cd build-release
+mkdir -p build && cd build
 ```
-4. Configure cmake
+5. Configure cmake
 ```
 cmake ..
 ```
-5. Build
+6. Build
 ## Linux/MacOS
 ```
 cmake --build .
@@ -113,7 +111,7 @@ cmake --build .
 ```
 cmake --build . --config Release
 ```
-6. Run the app
+7. Run the app
 ```
 $ ./neighbors_iris
 Prediction: [1 2 1 0 2 0 2 0 0 2 0 1 0 2 1 1 0 0 0 2 0 2 2 2 0 1 2 1 2 1]
@@ -179,19 +177,23 @@ int main(int, char **) {
 ```
 git clone https://github.com/mgorshkov/sklearn.git
 ```
-2. cd samples/neighbors
+2. Build the library
 ```
-cd samples/neighbors/iris
+./scripts/build.sh
 ```
-3. Make build dir
+3. cd samples/neighbors/diabetes
 ```
-mkdir -p build-release && cd build-release
+cd samples/neighbors/diabetes
 ```
-4. Configure cmake
+4. Make build dir
+```
+mkdir -p build && cd build
+```
+5. Configure cmake
 ```
 cmake ..
 ```
-5. Build
+6. Build
 ## Linux/MacOS
 ```
 cmake --build .
@@ -200,7 +202,7 @@ cmake --build .
 ```
 cmake --build . --config Release
 ```
-6. Run the app
+7. Run the app
 ```
 $ ./neighbors_diabetes
 Prediction: 	0
@@ -224,6 +226,6 @@ Prediction: 	0
 ```
 
 # Links
-* C++ numpy-like template-based array implementation: https://github.com/mgorshkov/np
-* Methods from pandas library on top of NP library: https://github.com/mgorshkov/pd
-* Scientific methods on top of NP library: https://github.com/mgorshkov/scipy
+* ⚡ NumPy-style arrays in C++ | CUDA GPU + SIMD (AVX2/AVX512/AMX) CPU: https://github.com/mgorshkov/np
+* ⚡ Data manipulation and analysis library in C++ | CUDA GPU + SIMD (AVX2/AVX512/AMX) CPU: https://github.com/mgorshkov/pd
+* ⚡ SciPy methods in C++ | CUDA GPU + SIMD (AVX2/AVX512/AMX) CPU: https://github.com/mgorshkov/scipy

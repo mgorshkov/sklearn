@@ -1,7 +1,7 @@
 /*
-ML Methods from scikit-learn library
+⚡ ML methods in C++ | CUDA GPU + SIMD (AVX2/AVX512/AMX) CPU
 
-Copyright (c) 2023 Mikhail Gorshkov (mikhail.gorshkov@gmail.com)
+Copyright (c) 2023-2026 Mikhail Gorshkov (mikhail.gorshkov@gmail.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -29,10 +29,10 @@ namespace sklearn {
                 return np::Array<np::Size>{};
             }
             if (params.y_true.ndim() != 1 || params.y_pred.ndim() != 1) {
-                throw std::runtime_error("Arrays must be 1-dimensional");
+                throw sklearn::RuntimeError("Arrays must be 1-dimensional");
             }
             if (params.y_true.size() != params.y_pred.size()) {
-                throw std::runtime_error("Arrays must be of equal sizes");
+                throw sklearn::RuntimeError("Arrays must be of equal sizes");
             }
             // multiclass targets, sorted order
             std::set<pd::internal::Value> elements;
@@ -57,10 +57,10 @@ namespace sklearn {
                 return np::Array<np::Size>{};
             }
             if (params.y_true.ndim() != 1 || params.y_pred.ndim() != 1) {
-                throw std::runtime_error("Arrays must be 1-dimensional");
+                throw sklearn::RuntimeError("Arrays must be 1-dimensional");
             }
             if (params.y_true.size() != params.y_pred.size()) {
-                throw std::runtime_error("Arrays must be of equal sizes");
+                throw sklearn::RuntimeError("Arrays must be of equal sizes");
             }
             // multiclass targets, sorted order
             std::set<pd::internal::Value> elements;

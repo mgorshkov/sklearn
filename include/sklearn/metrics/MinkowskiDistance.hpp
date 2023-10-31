@@ -1,7 +1,7 @@
 /*
-ML Methods from scikit-learn library
+⚡ ML methods in C++ | CUDA GPU + SIMD (AVX2/AVX512/AMX) CPU
 
-Copyright (c) 2023 Mikhail Gorshkov (mikhail.gorshkov@gmail.com)
+Copyright (c) 2023-2026 Mikhail Gorshkov (mikhail.gorshkov@gmail.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@ SOFTWARE.
 
 #include <np/Array.hpp>
 
+#include <sklearn/Exception.hpp>
 #include <sklearn/metrics/Distance.hpp>
 
 namespace sklearn {
@@ -36,13 +37,13 @@ namespace sklearn {
         public:
             explicit MinkowskiDistance(int p = 2) : m_p{p} {
                 if (p != 2) {
-                    throw std::runtime_error("Only p == 2 is currently supported");
+                    throw sklearn::RuntimeError("Only p == 2 is currently supported");
                 }
             }
 
             virtual np::Array<np::float_> pairwise(const ArrayX &X) {
                 if (X.shape().size() != 2) {
-                    throw std::runtime_error("2D array expected");
+                    throw sklearn::RuntimeError("2D array expected");
                 }
                 np::Shape shape{X.shape()[0], X.shape()[0]};
                 np::Array<np::float_> result{shape};
@@ -56,10 +57,10 @@ namespace sklearn {
 
             virtual np::Array<np::float_> pairwise(const ArrayX &X, const ArrayY &Y) {
                 if (X.shape().size() != 2 || Y.shape().size() != 2) {
-                    throw std::runtime_error("2D arrays expected");
+                    throw sklearn::RuntimeError("2D arrays expected");
                 }
                 if (X.shape()[1] != Y.shape()[1]) {
-                    throw std::runtime_error("Number of features is different");
+                    throw sklearn::RuntimeError("Number of features is different");
                 }
                 np::Shape shape{X.shape()[0], Y.shape()[0]};
                 np::Array<np::float_> result{shape};

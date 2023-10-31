@@ -1,7 +1,7 @@
 /*
-ML Methods from scikit-learn library
+⚡ ML methods in C++ | CUDA GPU + SIMD (AVX2/AVX512/AMX) CPU
 
-Copyright (c) 2023 Mikhail Gorshkov (mikhail.gorshkov@gmail.com)
+Copyright (c) 2023-2026 Mikhail Gorshkov (mikhail.gorshkov@gmail.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -29,10 +29,10 @@ namespace sklearn {
                 return 1.0;
             }
             if (y_true.ndim() != y_pred.ndim()) {
-                throw std::runtime_error("Arrays must be of equal dimensions");
+                throw sklearn::RuntimeError("Arrays must be of equal dimensions");
             }
             if (y_true.size() != y_pred.size()) {
-                throw std::runtime_error("Arrays must be of equal sizes");
+                throw sklearn::RuntimeError("Arrays must be of equal sizes");
             }
 
             np::Size equal{0};
@@ -50,10 +50,10 @@ namespace sklearn {
                 return 1.0;
             }
             if (y_true.ndim() != y_pred.ndim()) {
-                throw std::runtime_error("Arrays must be of equal dimensions");
+                throw sklearn::RuntimeError("Arrays must be of equal dimensions");
             }
             if (y_true.size() != y_pred.size()) {
-                throw std::runtime_error("Arrays must be of equal sizes");
+                throw sklearn::RuntimeError("Arrays must be of equal sizes");
             }
 
             np::Size equal{0};

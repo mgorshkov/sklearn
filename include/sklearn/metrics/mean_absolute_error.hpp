@@ -1,7 +1,7 @@
 /*
-ML Methods from scikit-learn library
+⚡ ML methods in C++ | CUDA GPU + SIMD (AVX2/AVX512/AMX) CPU
 
-Copyright (c) 2023 Mikhail Gorshkov (mikhail.gorshkov@gmail.com)
+Copyright (c) 2023-2026 Mikhail Gorshkov (mikhail.gorshkov@gmail.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,7 @@ SOFTWARE.
 #pragma once
 
 #include <np/Array.hpp>
+#include <sklearn/Exception.hpp>
 
 namespace sklearn {
     namespace metrics {
@@ -38,10 +39,10 @@ namespace sklearn {
                 return 1.0;
             }
             if (params.y_true.ndim() != params.y_pred.ndim()) {
-                throw std::runtime_error("Arrays must be of equal dimensions");
+                throw sklearn::RuntimeError("Arrays must be of equal dimensions");
             }
             if (params.y_true.size() != params.y_pred.size()) {
-                throw std::runtime_error("Arrays must be of equal sizes");
+                throw sklearn::RuntimeError("Arrays must be of equal sizes");
             }
 
             np::float_ sum = 0.0;

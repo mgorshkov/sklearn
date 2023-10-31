@@ -1,44 +1,83 @@
-cmake_minimum_required(VERSION 3.13.0)
+cmake_minimum_required(VERSION 3.18.0)
 
-set(GMT_TREND_2D gmt_trend_2d)
+set(PROJECT_NAME gmt_trend_2d)
 
-project(${GMT_TREND_2D})
+project(${PROJECT_NAME})
 
-set(CMAKE_CXX_STANDARD 20)
+# Tune up various optimizations
+# Enable CUDA support
+option(ENABLE_CUDA "Enable CUDA optimizations" ON)
+# Set up options for basic compile optimizations
+option(ENABLE_AVX2 "Enable AVX2 optimizations" ON)
+option(ENABLE_AVX512 "Enable AVX512 optimizations" OFF)
+option(ENABLE_AMX "Enable AMX (Advanced Matrix Extensions) optimizations" OFF)
+# Set up options for OpenMP support
+option(ENABLE_OPENMP "Enable OpenMP" ON)
 
 include(FetchContent)
+
+FetchContent_Declare(
+    cmake
+    GIT_REPOSITORY https://github.com/mgorshkov/cmake.git
+    GIT_TAG main
+)
+FetchContent_MakeAvailable(cmake)
+
+# Apply global cmake options
+include(${cmake_SOURCE_DIR}/Config.cmake)
 
 FetchContent_Declare(
     sklearn
     GIT_REPOSITORY https://github.com/mgorshkov/sklearn.git
     GIT_TAG main
+    CMAKE_ARGS
+        -DENABLE_CUDA=${ENABLE_CUDA}
+        -DENABLE_OPENMP=${ENABLE_OPENMP}
+        -DENABLE_SSE2=${ENABLE_SSE2}
+        -DENABLE_SSE3=${ENABLE_SSE3}
+        -DENABLE_AVX=${ENABLE_AVX}
+        -DENABLE_AVX2=${ENABLE_AVX2}
+        -DENABLE_AVX512=${ENABLE_AVX512}
+        -DENABLE_AMX=${ENABLE_AMX}
+        -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}
+        -DDEBUG_INFO=${DEBUG_INFO}
 )
-
 FetchContent_MakeAvailable(sklearn)
-
-find_package(OpenMP)
-if (OPENMP_FOUND)
-    add_definitions(-DOPENMP)
-    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-    set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
-endif()
 
 include_directories(${sklearn_SOURCE_DIR}/include)
 
-add_executable(${GMT_TREND_2D})
+add_executable(${PROJECT_NAME})
 
-target_sources(${GMT_TREND_2D} PUBLIC main.cpp)
+target_sources(${PROJECT_NAME} PUBLIC main.cpp)
 
-target_link_libraries(
-    ${GMT_TREND_2D}
+# Performance profiling target
+add_executable(${PROJECT_NAME}_perf)
+target_sources(${PROJECT_NAME}_perf PUBLIC perf_test.cpp)
+
+# Cross-language benchmark target (C++ vs Python)
+add_executable(${PROJECT_NAME}_benchmark)
+target_sources(${PROJECT_NAME}_benchmark PUBLIC benchmark.cpp)
+
+set (LIBS ${LIBS}
     pd
-    ssl
     sklearn
-    ${PTHREAD})
+    pthread)
+
+# Apply target-dependent cmake options
+include(${cmake_SOURCE_DIR}/Target.cmake)
+
+# Also apply compile features and options to the perf target
+target_compile_features(${PROJECT_NAME}_perf PUBLIC cxx_std_20)
+target_link_libraries(${PROJECT_NAME}_perf PRIVATE ${LIBS})
+target_include_directories(${PROJECT_NAME}_perf PRIVATE ${sklearn_SOURCE_DIR}/include)
+
+# Apply compile features and options to the benchmark target
+target_compile_features(${PROJECT_NAME}_benchmark PUBLIC cxx_std_20)
+target_link_libraries(${PROJECT_NAME}_benchmark PRIVATE ${LIBS})
+target_include_directories(${PROJECT_NAME}_benchmark PRIVATE ${sklearn_SOURCE_DIR}/include)
 
 install(
-    TARGETS ${GMT_TREND_2D}
-    DESTINATION ${CMAKE_INSTALL_BINDIR}
-    COMPONENT ${GMT_TREND_2D}
+    TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_perf ${PROJECT_NAME}_benchmark
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    COMPONENT ${PROJECT_NAME}
 )

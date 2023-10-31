@@ -1,7 +1,7 @@
 /*
-ML Methods from scikit-learn library
+⚡ ML methods in C++ | CUDA GPU + SIMD (AVX2/AVX512/AMX) CPU
 
-Copyright (c) 2023 Mikhail Gorshkov (mikhail.gorshkov@gmail.com)
+Copyright (c) 2023-2026 Mikhail Gorshkov (mikhail.gorshkov@gmail.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -29,10 +29,10 @@ namespace sklearn {
                 return 1.0;
             }
             if (params.y_true.ndim() != params.y_pred.ndim()) {
-                throw std::runtime_error("Arrays must be of equal dimensions");
+                throw sklearn::RuntimeError("Arrays must be of equal dimensions");
             }
             if (params.y_true.size() != params.y_pred.size()) {
-                throw std::runtime_error("Arrays must be of equal sizes");
+                throw sklearn::RuntimeError("Arrays must be of equal sizes");
             }
 
             if (params.average == Average::avBinary) {
@@ -44,9 +44,9 @@ namespace sklearn {
                     bool allOnesInPred = true;
                     for (std::size_t j = 0; j < y_pred.shape()[0]; ++j) {
                         if (y_pred.dtype() != "bool" && y_pred.dtype() != "int32" && y_pred.dtype() != "int64" && y_pred.dtype() != "uint64") {
-                            throw std::runtime_error("Target is multiclass but average='binary'. Please choose another average setting, one of [None, 'micro', 'macro', 'weighted'].");
+                            throw sklearn::RuntimeError("Target is multiclass but average='binary'. Please choose another average setting, one of [None, 'micro', 'macro', 'weighted'].");
                         } else if (params.y_pred.shape().size() > 1) {
-                            throw std::runtime_error("Target is multilabel-indicator but average='binary'. Please choose another average setting, one of [None, 'micro', 'macro', 'weighted', 'samples']");
+                            throw sklearn::RuntimeError("Target is multilabel-indicator but average='binary'. Please choose another average setting, one of [None, 'micro', 'macro', 'weighted', 'samples']");
                         }
 
                         if (!y_pred[j]) {
@@ -145,7 +145,7 @@ namespace sklearn {
                 return weighted_f1;
             }
 
-            throw std::runtime_error("Invalid average param");
+            throw sklearn::RuntimeError("Invalid average param");
 
             return 0.0;
         }
@@ -155,10 +155,10 @@ namespace sklearn {
                 return 1.0;
             }
             if (params.y_true.ndim() != params.y_pred.ndim()) {
-                throw std::runtime_error("Arrays must be of equal dimensions");
+                throw sklearn::RuntimeError("Arrays must be of equal dimensions");
             }
             if (params.y_true.size() != params.y_pred.size()) {
-                throw std::runtime_error("Arrays must be of equal sizes");
+                throw sklearn::RuntimeError("Arrays must be of equal sizes");
             }
 
             if (params.average == Average::avBinary) {
@@ -167,9 +167,9 @@ namespace sklearn {
                     auto y_true = params.y_true[i];
                     auto y_pred = params.y_pred[i];
                     if (!y_pred.isBool()) {
-                        throw std::runtime_error("Target is multiclass but average='binary'. Please choose another average setting, one of [None, 'micro', 'macro', 'weighted'].");
+                        throw sklearn::RuntimeError("Target is multiclass but average='binary'. Please choose another average setting, one of [None, 'micro', 'macro', 'weighted'].");
                     } else if (params.y_true.shape().size() > 1) {
-                        throw std::runtime_error("Target is multilabel-indicator but average='binary'. Please choose another average setting, one of [None, 'micro', 'macro', 'weighted', 'samples']");
+                        throw sklearn::RuntimeError("Target is multilabel-indicator but average='binary'. Please choose another average setting, one of [None, 'micro', 'macro', 'weighted', 'samples']");
                     }
                     bool equal = y_true == y_pred;
                     bool allOnesInPred = y_pred == true;
@@ -264,7 +264,7 @@ namespace sklearn {
                 return weighted_f1;
             }
 
-            throw std::runtime_error("Invalid average param");
+            throw sklearn::RuntimeError("Invalid average param");
 
             return 0.0;
         }

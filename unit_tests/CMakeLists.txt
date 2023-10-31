@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.13.0)
 
-set(SKLEARN_UNIT_TESTS sklearn_unit_tests)
+set(PROJECT_NAME sklearn_unit_tests)
 
-project(${SKLEARN_UNIT_TESTS} VERSION 0.0.3 DESCRIPTION "Sklearn Unit Tests")
+project(${PROJECT_NAME} VERSION 0.0.4 DESCRIPTION "Sklearn Unit Tests")
 
 include(FetchContent)
 
@@ -18,25 +18,41 @@ set(BUILD_GTEST ON CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(googletest)
 
-include_directories(../include include ${googletest_SOURCE_DIR}/googletest/include ${scipy_SOURCE_DIR}/include)
+set(OPENSSL ON)
 
-add_executable(${SKLEARN_UNIT_TESTS})
+add_executable(${PROJECT_NAME})
 
 file(GLOB_RECURSE SOURCES ${PROJECT_SOURCE_DIR} "src/*.cpp")
-target_sources(${SKLEARN_UNIT_TESTS} PUBLIC ${SOURCES})
+target_sources(${PROJECT_NAME} PUBLIC ${SOURCES})
 
-add_test(NAME ${SKLEARN_UNIT_TESTS} COMMAND tests)
+target_include_directories(${PROJECT_NAME}
+    PRIVATE
+        ../include
+        include
+        ${np_SOURCE_DIR}/include
+        ${scipy_SOURCE_DIR}/include
+)
 
-target_link_libraries(
-    ${SKLEARN_UNIT_TESTS}
+target_include_directories(${PROJECT_NAME}
+    SYSTEM PRIVATE
+        ${googletest_SOURCE_DIR}/googletest/include
+)
+
+add_test(NAME ${PROJECT_NAME} COMMAND tests)
+
+set (LIBS
+    ${LIBS}
     pd
     ssl
     sklearn
     gtest
-    ${PTHREAD})
+    pthread)
+
+# Apply target-dependent cmake options
+include(${cmake_SOURCE_DIR}/Target.cmake)
 
 install(
-    FILES ${CMAKE_CURRENT_BINARY_DIR}/${SKLEARN_UNIT_TESTS}
+    FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}
     DESTINATION ${CMAKE_INSTALL_BINDIR}
-    COMPONENT ${SKLEARN_UNIT_TESTS}
+    COMPONENT ${PROJECT_NAME}
 )

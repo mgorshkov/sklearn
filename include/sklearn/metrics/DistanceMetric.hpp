@@ -1,7 +1,7 @@
 /*
-ML Methods from scikit-learn library
+⚡ ML methods in C++ | CUDA GPU + SIMD (AVX2/AVX512/AMX) CPU
 
-Copyright (c) 2023 Mikhail Gorshkov (mikhail.gorshkov@gmail.com)
+Copyright (c) 2023-2026 Mikhail Gorshkov (mikhail.gorshkov@gmail.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,7 @@ SOFTWARE.
 
 #pragma once
 
+#include <sklearn/Exception.hpp>
 #include <sklearn/metrics/ChebyshevDistance.hpp>
 #include <sklearn/metrics/Distance.hpp>
 #include <sklearn/metrics/DistanceMetricType.hpp>
@@ -45,7 +46,7 @@ namespace sklearn {
                     case DistanceMetricType::kMinkowski:
                         return std::make_shared<MinkowskiDistance<ArrayX, ArrayY>>(p);
                     default:
-                        throw std::runtime_error("Unknown metric type");
+                        throw sklearn::RuntimeError("Unknown metric type");
                         return nullptr;
                 }
             }

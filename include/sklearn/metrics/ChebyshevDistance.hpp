@@ -1,7 +1,7 @@
 /*
-ML Methods from scikit-learn library
+⚡ ML methods in C++ | CUDA GPU + SIMD (AVX2/AVX512/AMX) CPU
 
-Copyright (c) 2023 Mikhail Gorshkov (mikhail.gorshkov@gmail.com)
+Copyright (c) 2023-2026 Mikhail Gorshkov (mikhail.gorshkov@gmail.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,8 +24,10 @@ SOFTWARE.
 
 #include <memory>
 
+#include <cmath>
 #include <np/Array.hpp>
 
+#include <sklearn/Exception.hpp>
 #include <sklearn/metrics/Distance.hpp>
 #include <sklearn/metrics/Math.hpp>
 
@@ -37,13 +39,21 @@ namespace sklearn {
         public:
             virtual np::Array<np::float_> pairwise(const ArrayX &X) {
                 if (X.shape().size() != 2) {
-                    throw std::runtime_error("2D array expected");
+                    throw sklearn::RuntimeError("2D array expected");
                 }
-                np::Shape shape{X.shape()[0], X.shape()[0]};
+                np::Size n_samples = X.shape()[0];
+                np::Size n_features = X.shape()[1];
+                np::Shape shape{n_samples, n_samples};
                 np::Array<np::float_> result{shape};
-                for (np::Size i = 0; i < shape[0]; ++i) {
-                    for (np::Size j = 0; j < shape[1]; ++j) {
-                        result.set(i * shape[1] + j, max(abs(X[i].subtract(X[j]))));
+                for (np::Size i = 0; i < n_samples; ++i) {
+                    for (np::Size j = 0; j < n_samples; ++j) {
+                        np::float_ maxDiff = 0;
+                        for (np::Size k = 0; k < n_features; ++k) {
+                            np::float_ diff = std::abs(static_cast<np::float_>(X.at(i, k) -
+                                                                               X.at(j, k)));
+                            if (diff > maxDiff) maxDiff = diff;
+                        }
+                        result.set(i * n_samples + j, maxDiff);
                     }
                 }
                 return result;
@@ -51,16 +61,25 @@ namespace sklearn {
 
             virtual np::Array<np::float_> pairwise(const ArrayX &X, const ArrayY &Y) {
                 if (X.shape().size() != 2 || Y.shape().size() != 2) {
-                    throw std::runtime_error("2D arrays expected");
+                    throw sklearn::RuntimeError("2D arrays expected");
                 }
                 if (X.shape()[1] != Y.shape()[1]) {
-                    throw std::runtime_error("Number of features is different");
+                    throw sklearn::RuntimeError("Number of features is different");
                 }
-                np::Shape shape{X.shape()[0], Y.shape()[0]};
+                np::Size n_samples_X = X.shape()[0];
+                np::Size n_samples_Y = Y.shape()[0];
+                np::Size n_features = X.shape()[1];
+                np::Shape shape{n_samples_X, n_samples_Y};
                 np::Array<np::float_> result{shape};
-                for (np::Size i = 0; i < shape[0]; ++i) {
-                    for (np::Size j = 0; j < shape[1]; ++j) {
-                        result.set(i * shape[1] + j, max(abs(X[i].subtract(Y[j]))));
+                for (np::Size i = 0; i < n_samples_X; ++i) {
+                    for (np::Size j = 0; j < n_samples_Y; ++j) {
+                        np::float_ maxDiff = 0;
+                        for (np::Size k = 0; k < n_features; ++k) {
+                            np::float_ diff = std::abs(static_cast<np::float_>(X.at(i, k) -
+                                                                               Y.at(j, k)));
+                            if (diff > maxDiff) maxDiff = diff;
+                        }
+                        result.set(i * n_samples_Y + j, maxDiff);
                     }
                 }
                 return result;
