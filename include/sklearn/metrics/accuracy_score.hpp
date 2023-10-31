@@ -27,8 +27,8 @@ SOFTWARE.
 
 namespace sklearn {
     namespace metrics {
-        template<typename DTypeX, typename DTypeY = DTypeX, np::Size SizeX = np::SIZE_DEFAULT, np::Size SizeY = np::SIZE_DEFAULT>
-        np::float_ accuracy_score(const np::Array<DTypeX, SizeX> &y_true, const np::Array<DTypeY, SizeY> &y_pred) {
+        template<typename DTypeX, typename DerivedX, typename StorageX, typename DTypeY, typename DerivedY, typename StorageY>
+        np::float_ accuracy_score(const np::ndarray::internal::NDArrayBase<DTypeX, DerivedX, StorageX> &y_true, const np::ndarray::internal::NDArrayBase<DTypeY, DerivedY, StorageY> &y_pred) {
             if (y_true.empty() && y_pred.empty()) {
                 return 1.0;
             }

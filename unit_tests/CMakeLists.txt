@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.13.0)
 
 set(SKLEARN_UNIT_TESTS sklearn_unit_tests)
 
-project(${SKLEARN_UNIT_TESTS} VERSION 0.0.3 DESCRIPTION "Sklearn Unit Tests")
+project(${SKLEARN_UNIT_TESTS} VERSION 0.0.4 DESCRIPTION "Sklearn Unit Tests")
 
 include(FetchContent)
 
@@ -17,6 +17,8 @@ set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
 set(BUILD_GTEST ON CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(googletest)
+
+set(OPENSSL ON)
 
 include_directories(../include include ${googletest_SOURCE_DIR}/googletest/include ${scipy_SOURCE_DIR}/include)
 

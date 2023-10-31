@@ -42,7 +42,7 @@ TEST_F(LinearRegressionTest, OLSTest) {
 
     np::float_ X[4][2] = {{1.0, 1.0}, {1.0, 2.0}, {2.0, 2.0}, {3.0, 4.0}};
     np::float_ y[4] = {6.0, 8.0, 9.0, 11.0};
-    reg.fit(np::Array<np::float_>{X}, np::Array<np::float_>{y});
+    reg.fit(np::Array<np::float_>{X}, np::Array<np::float_>{y}, np::Array<np::float_>{});
 
     EXPECT_DOUBLE_EQ(reg.intercept_(), 4.8000000000000558);
 
@@ -101,7 +101,7 @@ TEST_F(LinearRegressionTest, diabetesTest) {
     auto regr = LinearRegression{};
 
     // Train the model using the training sets
-    regr.fit(diabetes_X_train, diabetes_y_train);
+    regr.fit(diabetes_X_train, diabetes_y_train, np::Array<np::float_>{});
 
     // Make predictions using the testing set
     auto diabetes_y_pred = regr.predict(diabetes_X_test);

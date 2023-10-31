@@ -83,16 +83,18 @@ auto GMT_trend2d(const Array<float_> &data, int rank) {
 
     std::vector<float_> chisqs;
     Array<float_> coeffs;
-    while (true) {
-        // fit linear regression
-        mlr.fit(xy, z, w);
 
+    // fit linear regression
+    mlr.fit(xy, z, w);
+
+    while (true) {
         auto r = abs(z.subtract(mlr.predict(xy)));
         auto chisq = sum((r * r * w)) / static_cast<float_>(z.size() - 3);
         chisqs.push_back(chisq);
+
         auto k = 1.5 * MAD_NORMALIZE * median(r);
-        w = where<float_>(
-                r, [k](const auto &element) { return element <= k; }, [](const auto &element) { return 1.0; },
+        auto w1 = where<float_>(
+                r, [k](const auto &element) { return element <= k; }, [](const auto &) { return 1.0; },
                 [k](const auto &element) { return 2 * k / element - k * k / (element * element); });
         auto sig = (chisqs.size() == 1 ? 1 : gmtstat_f_q(chisqs[chisqs.size() - 1], static_cast<float_>(z.size() - 3), chisqs[chisqs.size() - 2], static_cast<float_>(z.size() - 3)));
         // Go back to previous model only if previous chisq < current chisq
@@ -100,10 +102,13 @@ auto GMT_trend2d(const Array<float_> &data, int rank) {
             coeffs = mlr.coeffs_();
         }
 
-        //print ('chisq', chisq, 'significant', sig)
+        std::cout << "chisq, " << chisq << ", significant," << sig << std::endl;
         if (sig < sig_threshold) {
             break;
         }
+
+        // fit linear regression
+        mlr.fit(xy, z, w1);
     }
     // get the slope and intercept of the line best fit
     return (coeffs[":" + std::to_string(rank)]);
@@ -125,7 +130,7 @@ auto generate_data(auto rank, auto num_points, auto noise_level) {
     return column_stack(x, y, z);
 }
 
-auto measure_time(auto func, auto data, int rank, int n_runs) {
+auto measure_time(auto func, const auto &data, int rank, int n_runs) {
     timespec start_time{};
     clock_gettime(CLOCK_MONOTONIC, &start_time);
     for (int i = 0; i < n_runs; ++i) {

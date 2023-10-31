@@ -71,7 +71,7 @@ namespace sklearn {
             // y - target values
             void fit(const ArrayDataType &X, const ArrayTargetType &y) {
                 // initialize m_coeff and m_intercept randomly
-                m_coeff = np::zeros(np::Shape{X.shape()[1]});
+                m_coeff = np::zeros(np::Shape{X.shape()[1]}).copy();
                 m_intercept = 0.0;
 
                 for (std::size_t i = 0; i < m_iterations; ++i) {
