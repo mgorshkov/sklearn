@@ -1,7 +1,7 @@
 /*
-ML Methods from scikit-learn library
+⚡ ML methods in C++ | CUDA GPU + SIMD (AVX2/AVX512/AMX) CPU
 
-Copyright (c) 2023 Mikhail Gorshkov (mikhail.gorshkov@gmail.com)
+Copyright (c) 2023-2026 Mikhail Gorshkov (mikhail.gorshkov@gmail.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,8 @@ SOFTWARE.
 #include <sklearn/neighbors/BallTree.hpp>
 #include <sklearn/neighbors/KdTree.hpp>
 
+#include <sklearn/Exception.hpp>
+
 namespace sklearn {
     namespace neighbors {
         template<typename DType>
@@ -42,7 +44,7 @@ namespace sklearn {
                 case AlgorithmType::kBrute:
                     return MinkowskiDistancePtr<DType>{};
                 default:
-                    throw std::runtime_error("Unknown algorithm type");
+                    throw sklearn::RuntimeError("Unknown algorithm type");
                     return nullptr;
             }
         }

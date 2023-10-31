@@ -1,7 +1,7 @@
 /*
-ML Methods from scikit-learn library
+⚡ ML methods in C++ | CUDA GPU + SIMD (AVX2/AVX512/AMX) CPU
 
-Copyright (c) 2023 Mikhail Gorshkov (mikhail.gorshkov@gmail.com)
+Copyright (c) 2023-2026 Mikhail Gorshkov (mikhail.gorshkov@gmail.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -27,10 +27,12 @@ SOFTWARE.
 #include <np/Array.hpp>
 #include <np/Constants.hpp>
 #include <np/DType.hpp>
+#include <np/Math.hpp>
 
 #include <sklearn/model_selection/train_test_split.hpp>
 
 #include <optional>
+#include <sklearn/Exception.hpp>
 #include <vector>
 
 namespace sklearn {
@@ -77,18 +79,16 @@ namespace sklearn {
             }
 
             StandardScaler &fit(const np::Array<DType> &array) {
-                if (array.shape().size() != 2) {
-                    throw std::runtime_error("Array must be 2-dimensional");
-                }
+                SKLEARN_THROW_UNLESS(array.shape().size() == 2, "Array must be 2-dimensional");
                 np::Size size = array.shape()[1];
                 if (m_parameters.with_mean) {
-                    m_mean = np::Array<np::float_>{np::Shape{size}};
+                    m_mean = np::Array<DType>{np::Shape{size}};
                     for (np::Size i = 0; i < size; ++i) {
                         m_mean.set(i, array[":," + std::to_string(i)].mean());
                     }
                 }
                 if (m_parameters.with_std) {
-                    m_var = np::Array<np::float_>{np::Shape{size}};
+                    m_var = np::Array<DType>{np::Shape{size}};
                     for (np::Size i = 0; i < size; ++i) {
                         m_var.set(i, array[":," + std::to_string(i)].var());
                     }
@@ -103,18 +103,16 @@ namespace sklearn {
             }
 
             StandardScaler &fit(const pd::DataFrame &dataFrame) {
-                if (dataFrame.shape().size() != 2) {
-                    throw std::runtime_error("DataFrame must be 2-dimensional");
-                }
+                SKLEARN_THROW_UNLESS(dataFrame.shape().size() == 2, "DataFrame must be 2-dimensional");
                 np::Size size = dataFrame.shape()[1];
                 if (m_parameters.with_mean) {
-                    m_mean = np::Array<np::float_>{np::Shape{size}};
+                    m_mean = np::Array<DType>{np::Shape{size}};
                     for (np::Size i = 0; i < size; ++i) {
                         m_mean.set(i, dataFrame[pd::internal::Value{i}].mean());
                     }
                 }
                 if (m_parameters.with_std) {
-                    m_var = np::Array<np::float_>{np::Shape{size}};
+                    m_var = np::Array<DType>{np::Shape{size}};
                     for (np::Size i = 0; i < size; ++i) {
                         m_var.set(i, dataFrame[pd::internal::Value{i}].var());
                     }
@@ -129,11 +127,28 @@ namespace sklearn {
             }
 
             np::Array<DType> transform(const np::Array<DType> &array) {
-                return array.subtract(m_mean).divide(m_scale);
+                using np::operator-;
+                using np::operator/;
+                auto result = array.copy();
+                auto original_shape = array.shape();
+                if (m_parameters.with_mean && !m_mean.empty()) {
+                    result = (result - m_mean).reshape(original_shape);
+                }
+                if (m_parameters.with_std && !m_scale.empty()) {
+                    // Replace zero scale values with 1 to avoid division by zero
+                    auto scale = m_scale.copy();
+                    for (np::Size i = 0; i < scale.size(); ++i) {
+                        if (scale.get(i) == 0) {
+                            scale.set(i, 1);
+                        }
+                    }
+                    result = (result / scale).reshape(original_shape);
+                }
+                return result;
             }
 
             pd::DataFrame transform(const pd::DataFrame &dataFrame) {
-                return dataFrame.subtractVector<np::float_>(m_mean).template divideVector<np::float_>(m_scale);
+                return dataFrame.subtractVector<DType>(m_mean).template divideVector<DType>(m_scale);
             }
 
             np::Array<DType> fit_transform(const np::Array<DType> &array) {
@@ -160,9 +175,9 @@ namespace sklearn {
 
         private:
             StandardScalerParameters m_parameters;
-            np::Array<np::float_> m_mean;
-            np::Array<np::float_> m_var;
-            np::Array<np::float_> m_scale;
+            np::Array<DType> m_mean;
+            np::Array<DType> m_var;
+            np::Array<DType> m_scale;
         };
 
     }// namespace preprocessing

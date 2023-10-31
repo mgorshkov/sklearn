@@ -1,3 +1,7 @@
+# Release 0.0.4
+## Changes
+* CUDA and SIMD optimizations
+
 # Release 0.0.3
 ## Changes
 * Linear regression, SGDRegressor added, new sample added

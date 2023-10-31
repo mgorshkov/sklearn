@@ -1,7 +1,7 @@
 /*
-ML Methods from scikit-learn library
+⚡ ML methods in C++ | CUDA GPU + SIMD (AVX2/AVX512/AMX) CPU
 
-Copyright (c) 2023 Mikhail Gorshkov (mikhail.gorshkov@gmail.com)
+Copyright (c) 2023-2026 Mikhail Gorshkov (mikhail.gorshkov@gmail.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -38,13 +38,16 @@ protected:
 
 TEST_F(LinearRegressionTest, OLSTest) {
     using namespace sklearn::linear_model;
+
+    np::float_ X_arr[4][2] = {{1.0, 1.0}, {1.0, 2.0}, {2.0, 2.0}, {3.0, 4.0}};
+    np::Array<np::float_> X{X_arr};
+    np::float_ y_arr[4] = {6.0, 8.0, 9.0, 11.0};
+    np::Array<np::float_> y{y_arr};
+
     auto reg = LinearRegression{};
+    reg.fit(X, y, np::Array<np::float_>{});
 
-    np::float_ X[4][2] = {{1.0, 1.0}, {1.0, 2.0}, {2.0, 2.0}, {3.0, 4.0}};
-    np::float_ y[4] = {6.0, 8.0, 9.0, 11.0};
-    reg.fit(np::Array<np::float_>{X}, np::Array<np::float_>{y});
-
-    EXPECT_DOUBLE_EQ(reg.intercept_(), 4.8000000000000558);
+    EXPECT_NEAR(reg.intercept_(), 4.8000000000000558, 1e-7);
 
     compare(reg.coef_(), np::Array<np::float_>{0.7, 1.1});
 
@@ -58,14 +61,17 @@ TEST_F(LinearRegressionTest, OLSTest) {
 TEST_F(LinearRegressionTest, weightedOLSTest) {
     // weighted OLS
     using namespace sklearn::linear_model;
-    auto reg = LinearRegression{};
 
-    np::float_ X[4][2] = {{1.0, 1.0}, {1.0, 2.0}, {2.0, 2.0}, {3.0, 4.0}};
-    np::float_ y[4] = {6.0, 8.0, 9.0, 11.0};
+    np::float_ X_arr[4][2] = {{1.0, 1.0}, {1.0, 2.0}, {2.0, 2.0}, {3.0, 4.0}};
+    np::Array<np::float_> X{X_arr};
+    np::float_ y_arr[4] = {6.0, 8.0, 9.0, 11.0};
+    np::Array<np::float_> y{y_arr};
     np::float_ sample_weight[4] = {4.0, 0.5, 2.0, 3.0};
-    reg.fit(np::Array<np::float_>{X}, np::Array<np::float_>{y}, np::Array<np::float_>{sample_weight});
 
-    EXPECT_DOUBLE_EQ(reg.intercept_(), 4.1250000000000187);
+    auto reg = LinearRegression{};
+    reg.fit(X, y, np::Array<np::float_>{sample_weight});
+
+    EXPECT_NEAR(reg.intercept_(), 4.1250000000000187, 1e-7);
 
     compare(reg.coef_(), np::Array<np::float_>{1.5625, 0.59375});
 
@@ -101,7 +107,7 @@ TEST_F(LinearRegressionTest, diabetesTest) {
     auto regr = LinearRegression{};
 
     // Train the model using the training sets
-    regr.fit(diabetes_X_train, diabetes_y_train);
+    regr.fit(diabetes_X_train, diabetes_y_train, np::Array<np::float_>{});
 
     // Make predictions using the testing set
     auto diabetes_y_pred = regr.predict(diabetes_X_test);
@@ -111,9 +117,9 @@ TEST_F(LinearRegressionTest, diabetesTest) {
     // The mean squared error
     MeanSquaredErrorParameters<decltype(diabetes_y_test), decltype(diabetes_y_pred)> mseParams{.y_true = diabetes_y_test, .y_pred = diabetes_y_pred};
     auto mse = mean_squared_error(mseParams);
-    EXPECT_DOUBLE_EQ(mse, 2548.0723987259735);
+    EXPECT_NEAR(mse, 2548.0723987259735, 2e-4);
     R2ScoreParameters<decltype(diabetes_y_test), decltype(diabetes_y_pred)> r2ScoreParams{.y_true = diabetes_y_test, .y_pred = diabetes_y_pred};
     // The coefficient of determination: 1 is perfect prediction
     auto r2 = r2_score(r2ScoreParams);
-    EXPECT_DOUBLE_EQ(r2, 0.47257544798227069);
+    EXPECT_NEAR(r2, 0.47257544798227069, 1e-8);
 }

@@ -1,7 +1,7 @@
 /*
-ML Methods from scikit-learn library
+⚡ ML methods in C++ | CUDA GPU + SIMD (AVX2/AVX512/AMX) CPU
 
-Copyright (c) 2023 Mikhail Gorshkov (mikhail.gorshkov@gmail.com)
+Copyright (c) 2023-2026 Mikhail Gorshkov (mikhail.gorshkov@gmail.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,7 @@ SOFTWARE.
 #pragma once
 
 #include <np/Array.hpp>
+#include <sklearn/Exception.hpp>
 #include <sklearn/metrics/confusion_matrix.hpp>
 #include <unordered_map>
 
@@ -82,37 +83,34 @@ namespace sklearn {
                 return 1.0;
             }
             if (params.y_true.ndim() != params.y_pred.ndim()) {
-                throw std::runtime_error("Arrays must be of equal dimensions");
+                throw sklearn::RuntimeError("Arrays must be of equal dimensions");
             }
             if (params.y_true.size() != params.y_pred.size()) {
-                throw std::runtime_error("Arrays must be of equal sizes");
+                throw sklearn::RuntimeError("Arrays must be of equal sizes");
             }
 
             if (params.average == Average::avBinary) {
                 if (!std::is_same_v<DTypeX, bool>) {
-                    throw std::runtime_error("Target is multiclass but average='binary'. Please choose another average setting, one of [None, 'micro', 'macro', 'weighted'].");
+                    throw sklearn::RuntimeError("Target is multiclass but average='binary'. Please choose another average setting, one of [None, 'micro', 'macro', 'weighted'].");
                 } else if (params.y_true.shape().size() > 1) {
-                    throw std::runtime_error("Target is multilabel-indicator but average='binary'. Please choose another average setting, one of [None, 'micro', 'macro', 'weighted', 'samples']");
+                    throw sklearn::RuntimeError("Target is multilabel-indicator but average='binary'. Please choose another average setting, one of [None, 'micro', 'macro', 'weighted', 'samples']");
                 }
 
                 F1Score score{};
                 for (np::Size i = 0; i < params.y_true.shape()[0]; ++i) {
-                    auto y_true = params.y_true[i];
-                    auto y_pred = params.y_pred[i];
-                    bool equal = np::array_equal(y_true, y_pred);
-                    bool allOnesInPred = std::all_of(y_pred.cbegin(), y_pred.cend(), [](auto i) {
-                        bool result;
-                        np::ndarray::internal::isTrue(i, result);
-                        return result;
-                    });
-                    if (allOnesInPred) {
-                        if (equal) {
-                            ++score.tp;
-                        } else {
-                            ++score.fp;
+                    auto y_true_val = params.y_true.get(i);
+                    auto y_pred_val = params.y_pred.get(i);
+                    bool equal = (y_true_val == y_pred_val);
+                    if constexpr (std::is_same_v<DTypeX, bool>) {
+                        if (y_pred_val) {
+                            if (equal) {
+                                ++score.tp;
+                            } else {
+                                ++score.fp;
+                            }
+                        } else if (!equal) {
+                            ++score.fn;
                         }
-                    } else if (!equal) {
-                        ++score.fn;
                     }
                 }
                 score.calcPrecision();
@@ -196,7 +194,7 @@ namespace sklearn {
                 }
                 return weighted_f1;
             }
-            throw std::runtime_error("Invalid average param");
+            throw sklearn::RuntimeError("Invalid average param");
 
             return 0.0;
         }

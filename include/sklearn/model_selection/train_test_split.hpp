@@ -1,7 +1,7 @@
 /*
-ML Methods from scikit-learn library
+⚡ ML methods in C++ | CUDA GPU + SIMD (AVX2/AVX512/AMX) CPU
 
-Copyright (c) 2023 Mikhail Gorshkov (mikhail.gorshkov@gmail.com)
+Copyright (c) 2023-2026 Mikhail Gorshkov (mikhail.gorshkov@gmail.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,7 @@ SOFTWARE.
 #include <sklearn/model_selection/train_test_split.hpp>
 
 #include <optional>
+#include <sklearn/Exception.hpp>
 #include <vector>
 
 namespace sklearn {
@@ -84,19 +85,13 @@ namespace sklearn {
             } else if (!params.train_size) {
                 params.train_size = 1.0 - std::get<np::float_>(*params.test_size);
             }
-            if (params.X.empty()) {
-                throw std::runtime_error("X must not be empty");
-            }
-            if (params.y.empty()) {
-                throw std::runtime_error("y must not be empty");
-            }
+            SKLEARN_THROW_UNLESS(!params.X.empty(), "X must not be empty");
+            SKLEARN_THROW_UNLESS(!params.y.empty(), "y must not be empty");
 
             auto shape_X = params.X.shape();
             auto shape_y = params.y.shape();
 
-            if (shape_X[0] != shape_y[0]) {
-                throw std::runtime_error("X and y must have equal number or rows");
-            }
+            SKLEARN_THROW_UNLESS(shape_X[0] == shape_y[0], "X and y must have equal number or rows");
 
             np::Size rows = shape_X[0];
             np::Size columns = shape_X.size() > 1 ? shape_X[1] : 1;
@@ -104,9 +99,7 @@ namespace sklearn {
             np::Array<DTypeX> X_shuffled{shape_X};
             np::Array<DTypeY> y_shuffled{shape_y};
             if (params.shuffle) {
-                if (params.stratify) {
-                    throw std::runtime_error("This function is not implemented yet");
-                }
+                SKLEARN_THROW_UNLESS(!params.stratify, "This function is not implemented yet");
                 std::unique_ptr<std::default_random_engine> e;
                 if (params.random_state) {
                     e = std::make_unique<std::default_random_engine>(*params.random_state);
@@ -125,9 +118,7 @@ namespace sklearn {
                     y_shuffled.set(row, params.y.get(indices[row]));
                 }
             } else {
-                if (params.stratify) {
-                    throw std::runtime_error("Stratify must be null if shuffle = false");
-                }
+                SKLEARN_THROW_UNLESS(!params.stratify, "Stratify must be null if shuffle = false");
                 X_shuffled = params.X.copy();
                 y_shuffled = params.y.copy();
             }
@@ -180,17 +171,11 @@ namespace sklearn {
             } else {
                 params.train_size = 1.0 - std::get<np::float_>(*params.test_size);
             }
-            if (params.X.empty()) {
-                throw std::runtime_error("X must not be empty");
-            }
-            if (params.y.empty()) {
-                throw std::runtime_error("y must not be empty");
-            }
+            SKLEARN_THROW_UNLESS(!params.X.empty(), "X must not be empty");
+            SKLEARN_THROW_UNLESS(!params.y.empty(), "y must not be empty");
             auto shape_X = params.X.shape();
             auto shape_y = params.y.shape();
-            if (shape_X[0] != shape_y[0]) {
-                throw std::runtime_error("X and y must have equal number or rows");
-            }
+            SKLEARN_THROW_UNLESS(shape_X[0] == shape_y[0], "X and y must have equal number or rows");
 
             np::Size rows = shape_X[0];
             np::Size columns = shape_X.size() > 1 ? shape_X[1] : 1;
@@ -198,9 +183,7 @@ namespace sklearn {
             pd::DataFrame X_shuffled;
             pd::DataFrame y_shuffled;
             if (params.shuffle) {
-                if (params.stratify) {
-                    throw std::runtime_error("This function is not implemented yet");
-                }
+                SKLEARN_THROW_UNLESS(!params.stratify, "This function is not implemented yet");
                 std::unique_ptr<std::default_random_engine> e;
                 if (params.random_state) {
                     e = std::make_unique<std::default_random_engine>(*params.random_state);
@@ -227,9 +210,7 @@ namespace sklearn {
                 }
                 y_shuffled.append(pd::Series{data, 0});
             } else {
-                if (params.stratify) {
-                    throw std::runtime_error("Stratify must be null if shuffle = false");
-                }
+                SKLEARN_THROW_UNLESS(!params.stratify, "Stratify must be null if shuffle = false");
                 X_shuffled = params.X;
                 y_shuffled = params.y;
             }

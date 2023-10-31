@@ -1,7 +1,7 @@
 /*
-ML Methods from scikit-learn library
+⚡ ML methods in C++ | CUDA GPU + SIMD (AVX2/AVX512/AMX) CPU
 
-Copyright (c) 2023 Mikhail Gorshkov (mikhail.gorshkov@gmail.com)
+Copyright (c) 2023-2026 Mikhail Gorshkov (mikhail.gorshkov@gmail.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,7 @@ SOFTWARE.
 #include <pd/core/frame/DataFrame/DataFrame.hpp>
 #include <pd/core/frame/DataFrame/DataFrameStreamIo.hpp>
 
+#include <sklearn/Exception.hpp>
 #include <sklearn/model_selection/train_test_split.hpp>
 
 #include <optional>
@@ -71,7 +72,7 @@ namespace sklearn {
             // y - target values
             void fit(const ArrayDataType &X, const ArrayTargetType &y) {
                 // initialize m_coeff and m_intercept randomly
-                m_coeff = np::zeros(np::Shape{X.shape()[1]});
+                m_coeff = np::zeros(np::Shape{X.shape()[1]}).copy();
                 m_intercept = 0.0;
 
                 for (std::size_t i = 0; i < m_iterations; ++i) {
@@ -88,11 +89,11 @@ namespace sklearn {
             // X - test samples.
             auto predict(const auto &X) {
                 if (!m_fitted) {
-                    throw std::runtime_error(
+                    throw sklearn::NotFittedError(
                             "This LinearRegression instance is not fitted yet. Call 'fit' with appropriate arguments before using this estimator.");
                 }
                 if (X.ndim() != 2) {
-                    throw std::runtime_error("Expected 2D array.");
+                    throw sklearn::RuntimeError("Expected 2D array.");
                 }
                 return forwardStep(X);
             }
@@ -117,13 +118,17 @@ namespace sklearn {
             }
 
             Derivatives backPropagation(const ArrayDataType &trainInput, const ArrayTargetType &trainOutput, const auto &pred) {
-                auto df = pred.subtract(trainOutput);
-                return Derivatives{trainInput.transpose().dot(df).divide(trainInput.shape()[0]), df.sum() / trainInput.shape()[0]};
+                using np::operator-;
+                using np::operator/;
+                auto df = pred - trainOutput;
+                return Derivatives{trainInput.transpose().dot(df) / trainInput.shape()[0], np::sum(df) / trainInput.shape()[0]};
             }
 
             bool updateCoeff(const Derivatives &derivatives) {
-                auto delta = derivatives.coeff.multiply(m_learningRate);
-                m_coeff = m_coeff.subtract(delta);
+                using np::operator*;
+                using np::operator-;
+                auto delta = derivatives.coeff * m_learningRate;
+                m_coeff = m_coeff - delta;
                 m_intercept -= derivatives.intercept * m_learningRate;
                 return true;
             }
